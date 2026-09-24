@@ -1,38 +1,87 @@
-### RunasCs
+<div align="center">
 
-----
+# RunasCs
 
-*RunasCs* is an utility to run specific processes with different permissions than the user's current logon provides using explicit credentials.
-This tool is an improved and open version of windows builtin *runas.exe* that solves some limitations:
+**An improved, open source alternative to Windows' built in `runas.exe` for running processes as another user with explicit credentials**
+
+![License](https://img.shields.io/github/license/01xJB/RunasCs?color=blue&style=for-the-badge)
+![Framework](https://img.shields.io/badge/.NET%20Framework-4.7.2-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
+![Language](https://img.shields.io/badge/language-C%23-239120?style=for-the-badge&logo=csharp&logoColor=white)
+![Status](https://img.shields.io/badge/status-maintained%20fork-brightgreen?style=for-the-badge)
+
+</div>
+
+---
+
+> ## Fork Notice
+> This is a maintained fork of the original [RunasCs](https://github.com/antonioCoco/RunasCs) by [@splinter_code (antonioCoco)](https://github.com/antonioCoco). All credit for the tool itself, its design, and its Windows API usage belongs to the original author and the contributors credited below. This fork exists because the upstream build instructions no longer work on a current toolchain, see [What Changed In This Fork](#what-changed-in-this-fork) for the fix. The tool's behavior, flags, and output are unchanged from upstream.
+
+## Overview
+
+*RunasCs* is a utility to run specific processes with different permissions than the user's current logon provides, using explicit credentials. It is an improved and open version of the Windows built in *runas.exe* that solves some of its limitations:
 
 * Allows explicit credentials
-* Works both if spawned from interactive process and from service process
-* Manage properly *DACL* for *Window Stations* and *Desktop* for the creation of the new process
-* Uses more reliable create process functions like ``CreateProcessAsUser()`` and ``CreateProcessWithTokenW()`` if the calling process holds the required privileges (automatic detection)
-* Allows to specify the logon type, e.g. 8-NetworkCleartext logon (no *UAC* limitations)
-* Allows to bypass UAC when an administrator password is known (flag --bypass-uac)
-* Allows to create a process with the main thread impersonating the requested user (flag --remote-impersonation)
-* Allows redirecting *stdin*, *stdout* and *stderr* to a remote host
-* It's Open Source :)
+* Works both when spawned from an interactive process and from a service process
+* Manages properly the *DACL* for *Window Stations* and *Desktop* for the creation of the new process
+* Uses more reliable process creation functions like `CreateProcessAsUser()` and `CreateProcessWithTokenW()` when the calling process holds the required privileges (automatic detection)
+* Allows specifying the logon type, e.g. 8-NetworkCleartext logon (no *UAC* limitations)
+* Allows bypassing UAC when an administrator password is known (flag `--bypass-uac`)
+* Allows creating a process with the main thread impersonating the requested user (flag `--remote-impersonation`)
+* Allows redirecting *stdin*, *stdout*, and *stderr* to a remote host
+* It's open source
 
-*RunasCs* has an automatic detection to determine the best create process function for every contexts.
-Based on the process caller token permissions, it will use one of the create process function in the following preferred order:
+*RunasCs* automatically detects the best process creation function for the current context. Based on the calling process token's permissions, it uses one of the following in preferred order:
 
-1. ``CreateProcessAsUserW()``
-2. ``CreateProcessWithTokenW()``
-3. ``CreateProcessWithLogonW()``
+1. `CreateProcessAsUserW()`
+2. `CreateProcessWithTokenW()`
+3. `CreateProcessWithLogonW()`
 
+> ## Authorized Use Only
+> RunasCs runs processes under alternate credentials and can bypass UAC token filtering. Only use it on systems you own or are explicitly authorized to test, such as a signed penetration test scope or your own lab. Unauthorized use of alternate credentials or UAC bypass techniques against systems you don't control is illegal in most jurisdictions.
 
-### Requirements
+## What Changed In This Fork
 
-----
+The upstream repository builds with a single line pointing directly at the in box `csc.exe` compiler, with no explicit assembly references:
 
-.NET Framework >= 2.0
+```
+C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe -target:exe -optimize -out:RunasCs.exe RunasCs.cs
+```
 
+On a current Windows install this now fails with a cascade of `CS0234`/`CS0246` errors for types like `System.Net`, `Win32Exception`, `AddressFamily`, and `Process`, because nothing is telling the compiler where to find `System.dll`, and the compiler that ships in the .NET Framework install path only understands language features up to C# 5.
 
-### Usage
+The source code itself did not need any logic changes, it needed a real build definition. This fork replaces the bare `csc.exe` one liner with a proper Visual Studio project (`RunasCs.sln` / `RunasCs.csproj`) targeting .NET Framework 4.7.2, with the required assembly reference declared explicitly, so MSBuild resolves everything correctly instead of relying on whatever the compiler happened to auto reference.
 
-----
+One real tradeoff worth knowing about: upstream's `compile_commands.txt` supported compiling two variants, one against the .NET Framework 4.0 compiler and one against 2.0, for broader compatibility with very old Windows targets. This fork only builds a single .NET Framework 4.7.2 target. If you need a binary that runs on a machine with a much older .NET Framework runtime, you will need to retarget `RunasCs.csproj` yourself.
+
+## Requirements
+
+**To build:**
+* Visual Studio 2019 or later (Community edition works fine), or the standalone Build Tools for Visual Studio with the .NET Framework 4.7.2 targeting pack
+
+**To run the compiled `RunasCs.exe`:**
+* .NET Framework 4.7.2 or later on the target machine
+
+## Build
+
+```bash
+git clone https://github.com/01xJB/RunasCs.git
+cd RunasCs
+```
+
+**Using the Visual Studio IDE:**
+
+1. Open `RunasCs.sln`
+2. Set the configuration to `Release`
+3. Build → Build Solution (`Ctrl+Shift+B`)
+4. The compiled binary is written to `bin\Release\RunasCs.exe`
+
+**Using MSBuild from the command line** (Developer Command Prompt for VS, or Build Tools installed standalone):
+
+```bash
+msbuild RunasCs.sln /p:Configuration=Release
+```
+
+## Usage
 
 ```console
 RunasCs v1.5 - @splinter_code
@@ -106,27 +155,21 @@ Examples:
         RunasCs.exe adm1 password1 "cmd /c echo admin > C:\Windows\admin" -l 8 --remote-impersonation
 ```
 
-The two processes (calling and called) will communicate through one *pipe* (both for *stdout* and *stderr*).
-The default logon type is 2 (*Interactive*). 
+The two processes (calling and called) communicate through one *pipe* (both for *stdout* and *stderr*). The default logon type is 2 (*Interactive*).
 
-By default, the *Interactive* (2) logon type is restricted by *UAC* and the generated token from these authentications are filtered.
-You can make interactive logon without any restrictions by setting the following regkey to 0 and restart the server:
+By default, the *Interactive* (2) logon type is restricted by *UAC*, and the token generated from this authentication is filtered. You can allow interactive logons without this restriction by setting the following registry key to 0 and restarting the server:
 
 ```
 HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\EnableLUA
 ```
 
-Otherwise, you can try the flag **--bypass-uac** for an attempt in bypassing the token filtering limitation.
+Otherwise, try the flag **--bypass-uac** to attempt to bypass the token filtering limitation.
 
-**NetworkCleartext (8)** logon type is the one with the widest permissions as it doesn't get filtered by UAC in local tokens and still allows
- authentications over the Network as it stores credentials in the authentication package. If you holds enough privileges, try to always specify this logon type through the flag --logon-type 8.
+**NetworkCleartext (8)** logon type has the widest permissions, since it isn't filtered by UAC in local tokens and still allows authentication over the network, as it stores credentials in the authentication package. If you hold enough privileges, prefer this logon type through `--logon-type 8`.
 
-By default, the calling process (*RunasCs*) will wait until the end of the execution of the spawned process. 
-If you need to spawn a background or async process, i.e. spawning a reverse shell, you need to set the parameter ``-t timeout`` to ``0``. In this case *RunasCs* won't wait for the end of the newly spawned process execution.
+By default, the calling process (*RunasCs*) waits until the spawned process finishes. If you need to spawn a background or async process, for example a reverse shell, set `-t timeout` to `0`. In that case *RunasCs* won't wait for the spawned process to finish.
 
-### References
-
-----
+## References
 
 * [Potatoes and tokens](https://decoder.cloud/2018/01/13/potato-and-tokens/)
 * [Starting an Interactive Client Process in C++](https://docs.microsoft.com/en-us/previous-versions/aa379608(v=vs.85))
@@ -139,10 +182,22 @@ If you need to spawn a background or async process, i.e. spawning a reverse shel
 * [Reading Your Way Around UAC (Part 3)](https://www.tiraniddo.dev/2017/05/reading-your-way-around-uac-part-3.html)
 * [Vanara - A set of .NET libraries for Windows implementing PInvoke calls to many native Windows APIs with supporting wrappers](https://github.com/dahall/Vanara)
 
-### Credits
+## Credits
 
------
+Original tool by [@splinter_code (antonioCoco)](https://github.com/antonioCoco). Upstream credits:
 
 * [@decoder](https://github.com/decoder-it)
 * [@qtc-de](https://github.com/qtc-de)
 * [@winlogon0](https://twitter.com/winlogon0)
+
+## License
+
+Released under [GPL-3.0](LICENSE), same as upstream.
+
+---
+
+<div align="center">
+
+Fork maintained by [**01xJB**](https://github.com/01xJB)
+
+</div>

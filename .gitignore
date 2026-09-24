@@ -1,0 +1,7 @@
+# Visual Studio build output and IDE cache
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.pdb
